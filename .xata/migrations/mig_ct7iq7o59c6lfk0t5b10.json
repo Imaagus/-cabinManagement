@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ct7iq7o59c6lfk0t5b10",
+    "operations": [
+      {
+        "add_column": {
+          "table": "cabin",
+          "column": {
+            "name": "dateTo",
+            "type": "timestamptz",
+            "comment": "",
+            "nullable": true
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ct7iq7o59c6lfk0t5b10",
+  "parent": "mig_ct7iq4m1ccglq2spglt0",
+  "schema": "public",
+  "startedAt": "2024-12-03T16:09:03.282954Z"
+}

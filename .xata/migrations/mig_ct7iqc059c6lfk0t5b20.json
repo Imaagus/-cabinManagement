@@ -1,0 +1,24 @@
+{
+  "done": true,
+  "migration": {
+    "name": "mig_ct7iqc059c6lfk0t5b20",
+    "operations": [
+      {
+        "add_column": {
+          "table": "cabin",
+          "column": {
+            "name": "payment",
+            "type": "int",
+            "comment": "",
+            "nullable": true
+          }
+        }
+      }
+    ]
+  },
+  "migrationType": "pgroll",
+  "name": "mig_ct7iqc059c6lfk0t5b20",
+  "parent": "mig_ct7iq7o59c6lfk0t5b10",
+  "schema": "public",
+  "startedAt": "2024-12-03T16:09:21.376459Z"
+}

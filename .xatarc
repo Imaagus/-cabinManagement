@@ -1,0 +1,6 @@
+{
+  "databaseURL": "https://Imanol-s-workspace-i3tp1f.us-east-1.xata.sh/db/cabinManag",
+  "codegen": {
+    "output": "src/xata.ts"
+  }
+}
