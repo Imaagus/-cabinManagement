@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { format } from 'date-fns'
+
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -11,109 +11,120 @@ import { useBookings, Booking } from '../hooks/useBookings'
 import { DateRange } from 'react-day-picker'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { toast } from '@/hooks/use-toast'
+import { CabinCalendar } from './calendar-component'
+
+
+const cabinNames = ["Orquideas 1", "Orquideas 2", "Orquideas 3", "Capri 1", "Capri 2","Capri 3",  ]
+
 
 export default function CabinManagement() {
   const { bookings, isLoading, error, addBooking, getTotalRevenue, getBookingInfo, isDateBooked } = useBookings()
   const [selectedCabin, setSelectedCabin] = useState('1')
+  const [selectedCalendarCabin, setSelectedCalendarCabin] = useState('1')
   const [tenantName, setTenantName] = useState('')
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [payment, setPayment] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (dateRange?.from && dateRange?.to) {
-      // Check if the selected date range is available
-      const start = new Date(dateRange.from)
-      const end = new Date(dateRange.to)
-      for (let day = start; day <= end; day.setDate(day.getDate() + 1)) {
-        if (isDateBooked(day, selectedCabin)) {
-          alert(`Cabin ${selectedCabin} is already booked on ${format(day, 'PP')}`)
-          return
-        }
+    if (dateRange?.from && dateRange?.to && selectedCabin && tenantName && payment) {
+      try {
+        console.log('Submitting booking:', {
+          cabinId: selectedCabin,
+          tenantName,
+          dateFrom: dateRange.from,
+          dateTo: dateRange.to,
+          payment: parseFloat(payment)
+        })
+        await addBooking({
+          cabinId: selectedCabin,
+          tenantName,
+          dateFrom: dateRange.from,
+          dateTo: dateRange.to,
+          payment: parseFloat(payment)
+        })
+        toast({
+          title: "Reserva exitosa",
+          description: "Su reserva ha sido agregada con éxito.",
+        })
+        // Reset form
+        setSelectedCabin('')
+        setTenantName('')
+        setDateRange(undefined)
+        setPayment('')
+      } catch (error) {
+        console.error('Error adding booking:', error)
+        toast({
+          title: "Error en la reserva",
+          description: error instanceof Error ? error.message : "Ocurrió un error al hacer la reserva.",
+          variant: "destructive",
+        })
       }
-
-      addBooking({
-        tenantName,
-        dateFrom: dateRange.from,
-        dateTo: dateRange.to,
-        payment: parseFloat(payment)
+    } else {
+      toast({
+        title: "Error en la reserva",
+        description: "Por favor, complete todos los campos requeridos.",
+        variant: "destructive",
       })
-      // Reset form
-      setTenantName('')
-      setDateRange(undefined)
-      setPayment('')
     }
   }
 
-  const DayContent = ({ date }: { date: Date }) => {
-    const bookingsOnDate = getBookingInfo(date)
-    const isBooked = bookingsOnDate.length > 0
-
-    return (
-      <Popover>
-        <PopoverTrigger asChild>
-          <div className={`w-full h-full ${isBooked ? 'bg-red-500 text-white' : ''}`}>
-            {date.getDate()}
-          </div>
-        </PopoverTrigger>
-        {isBooked && (
-          <PopoverContent className="w-fit p-0">
-            <div className="p-2">
-              <h3 className="font-semibold mb-2">Bookings for {format(date, 'MMM d, yyyy')}</h3>
-              {bookingsOnDate.map((booking: Booking, index: number) => (
-                <div key={index} className="text-sm mb-1">
-                  <span className="font-medium">Cabin {booking.cabinId}:</span> {booking.tenantName}
-                </div>
-              ))}
-            </div>
-          </PopoverContent>
-        )}
-      </Popover>
-    )
-  }
-
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>
+    return <div className="flex justify-center items-center h-screen">Cargando...</div>
   }
 
   if (error) {
     return <div className="flex justify-center items-center h-screen">Error: {error}</div>
   }
 
+  const getReservedDates = (dateFrom: Date, dateTo: Date): Date[] => {
+    const dates: Date[] = [];
+    for (
+      let date = new Date(dateFrom);
+      date <= dateTo;
+      date.setDate(date.getDate() + 1)
+    ) {
+      dates.push(new Date(date)); 
+    }
+    return dates;
+  };
+  
   return (
     <div className="container mx-auto p-4 space-y-8">
-      <h1 className="text-3xl font-bold text-center">Coastal Cabin Management</h1>
-      
+      <h1 className="text-3xl font-bold text-center">Gestion de cabañas</h1>
+
       <Tabs defaultValue="bookings" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="bookings">New Booking</TabsTrigger>
-          <TabsTrigger value="calendar">Availability</TabsTrigger>
-          <TabsTrigger value="summary">Summary</TabsTrigger>
+          <TabsTrigger value="bookings">Nueva reserva</TabsTrigger>
+          <TabsTrigger value="calendar">Disponibilidad</TabsTrigger>
+          <TabsTrigger value="summary">Resumen de cabañas</TabsTrigger>
         </TabsList>
         <TabsContent value="bookings">
           <Card>
             <CardHeader>
-              <CardTitle>New Booking</CardTitle>
+              <CardTitle>Nueva reserva</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="cabin">Cabin</Label>
-                    <Select onValueChange={setSelectedCabin} defaultValue={selectedCabin}>
+                    <Label htmlFor="cabin">Cabaña</Label>
+                    <Select onValueChange={setSelectedCabin} value={selectedCabin}>
                       <SelectTrigger id="cabin">
-                        <SelectValue placeholder="Select a cabin" />
+                        <SelectValue placeholder="Seleccione una cabaña" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1">Cabin 1</SelectItem>
-                        <SelectItem value="2">Cabin 2</SelectItem>
-                        <SelectItem value="3">Cabin 3</SelectItem>
+                        {cabinNames.map((cabinName) => (
+                          <SelectItem key={cabinName} value={cabinName}>
+                            {cabinName}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="tenantName">Tenant Name</Label>
+                    <Label htmlFor="tenantName">Nombre de inquilino</Label>
                     <Input
                       id="tenantName"
                       value={tenantName}
@@ -123,7 +134,7 @@ export default function CabinManagement() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Booking Dates</Label>
+                  <Label>Fecha de reserva</Label>
                   <Calendar
                     mode="range"
                     selected={dateRange}
@@ -134,7 +145,7 @@ export default function CabinManagement() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="payment">Payment</Label>
+                  <Label htmlFor="payment">Pago</Label>
                   <Input
                     id="payment"
                     type="number"
@@ -143,7 +154,7 @@ export default function CabinManagement() {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full">Add Booking</Button>
+                <Button type="submit" className="w-full">Agregar reserva</Button>
               </form>
             </CardContent>
           </Card>
@@ -154,40 +165,45 @@ export default function CabinManagement() {
               <CardTitle>Cabin Availability</CardTitle>
             </CardHeader>
             <CardContent>
-              <Calendar
-                mode="single"
-                selected={new Date()}
-                components={{
-                  DayContent: DayContent
-                }}
-                className="rounded-md border"
-                numberOfMonths={2}
-              />
+              <CabinCalendar />
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="summary">
-          <Card>
+        <TabsContent value="summary" >
+          <Card className="mt-4 p-4 border rounded shadow-sm ">
             <CardHeader>
-              <CardTitle>Bookings Summary</CardTitle>
+              <CardTitle>Resumen</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className=" flex justify-between flex-wrap">
                 {bookings.map((booking: Booking) => (
-                  <div key={booking.id} className="p-4 border rounded">
-                    <p><strong>Cabin:</strong> {booking.cabinId}</p>
-                    <p><strong>Tenant:</strong> {booking.tenantName}</p>
-                    <p><strong>Arrival:</strong> {format(new Date(booking.dateFrom!), 'PP')}</p>
-                    <p><strong>Departure:</strong> {format(new Date(booking.dateTo!), 'PP')}</p>
-                    <p><strong>Payment:</strong> ${booking.payment.toFixed(2)}</p>
+                  <div key={booking.id} className="p-6 mb-4 border rounded mt-0">
+                    <div>
+                    <p><strong>Cabaña:</strong> {booking.cabinId}</p>
+                    <p><strong>Inquilino:</strong> {booking.tenantName}</p>
+                    <p>
+                      <strong>Fecha de entrada:</strong> {booking.dateFrom?.toLocaleDateString()}
+                    </p>
+                    <p>
+                      <strong>Fecha de salida:</strong> {booking.dateTo?.toLocaleDateString()}
+                    </p>
+                    <p><strong>Pago:</strong> ${booking.payment}</p>
+                    </div>
+                    <div  >
+                    <Calendar
+                      mode="single"
+                      modifiers={{
+                        reserved: booking.dateFrom && booking.dateTo
+                          ? getReservedDates(booking.dateFrom, booking.dateTo)
+                          : [],
+                      }}
+                      modifiersClassNames={{
+                        reserved: 'bg-red-500 text-white',
+                      }}
+                    />
+                    </div>
                   </div>
                 ))}
-              </div>
-              <div className="mt-8 space-y-2">
-                <h3 className="text-xl font-semibold">Total Revenue per Cabin</h3>
-                <p><strong>Cabin 1:</strong> ${getTotalRevenue('1').toFixed(2)}</p>
-                <p><strong>Cabin 2:</strong> ${getTotalRevenue('2').toFixed(2)}</p>
-                <p><strong>Cabin 3:</strong> ${getTotalRevenue('3').toFixed(2)}</p>
               </div>
             </CardContent>
           </Card>

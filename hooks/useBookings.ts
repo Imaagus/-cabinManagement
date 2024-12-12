@@ -1,12 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 export interface Booking {
-  id: string
-  cabinId: string
+  id?: string
   tenantName: string
   dateFrom: Date | null
   dateTo: Date | null
   payment: number
+  cabinId: string
 }
 
 export function useBookings() {
@@ -21,18 +21,19 @@ export function useBookings() {
       }
       const data = await response.json()
       return data.map((record: any) => ({
-        id: record.id || '',
-        cabinId: record.id ? record.id.split('_')[1] || '' : '',
+        id: record.id,
         tenantName: record.tenantName ?? '',
         dateFrom: record.dateFrom ? new Date(record.dateFrom) : null,
         dateTo: record.dateTo ? new Date(record.dateTo) : null,
         payment: record.payment ?? 0,
+        cabinId: record.cabinId?.toString() ?? '',
       }))
     },
   })
 
   const addBookingMutation = useMutation({
-    mutationFn: async (booking: Omit<Booking, 'id' | 'cabinId'>) => {
+    mutationFn: async (booking: Omit<Booking, 'id'>) => {
+      console.log('Sending booking data:', booking)
       const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: {
@@ -41,7 +42,9 @@ export function useBookings() {
         body: JSON.stringify(booking),
       })
       if (!response.ok) {
-        throw new Error('Failed to add booking')
+        const errorData = await response.json()
+        console.error('Server response:', errorData)
+        throw new Error(errorData.error || 'Failed to add booking')
       }
       return response.json()
     },
@@ -49,7 +52,6 @@ export function useBookings() {
       queryClient.invalidateQueries({ queryKey: ['bookings'] })
     },
   })
-
   const getTotalRevenue = (cabinId: string) => {
     return bookings
       .filter((booking: Booking) => booking.cabinId === cabinId)
@@ -57,11 +59,13 @@ export function useBookings() {
   }
 
   const getBookingInfo = (date: Date) => {
-    return bookings.filter((booking: Booking) => 
-      booking.dateFrom && booking.dateTo &&
-      date >= booking.dateFrom && 
-      date <= booking.dateTo
-    )
+    return bookings.filter(booking => {
+      const bookingStart = booking.dateFrom ? new Date(booking.dateFrom) : null
+      const bookingEnd = booking.dateTo ? new Date(booking.dateTo) : null
+      return bookingStart && bookingEnd && 
+             date >= bookingStart && 
+             date <= bookingEnd
+    })
   }
 
   const isDateBooked = (date: Date, cabinId: string) => {

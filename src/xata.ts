@@ -26,6 +26,14 @@ const tables = [
     },
     columns: [
       {
+        name: "cabinId",
+        type: "text",
+        notNull: false,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
         name: "dateFrom",
         type: "datetime",
         notNull: false,
