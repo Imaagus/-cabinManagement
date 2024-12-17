@@ -19,9 +19,8 @@ const cabinNames = ["Orquideas 1", "Orquideas 2", "Orquideas 3", "Capri 1", "Cap
 
 
 export default function CabinManagement() {
-  const { bookings, isLoading, error, addBooking, getTotalRevenue, getBookingInfo, isDateBooked } = useBookings()
+  const { bookings, isLoading, error, addBooking, isDateBooked } = useBookings()
   const [selectedCabin, setSelectedCabin] = useState('1')
-  const [selectedCalendarCabin, setSelectedCalendarCabin] = useState('1')
   const [tenantName, setTenantName] = useState('')
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [payment, setPayment] = useState('')

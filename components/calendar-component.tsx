@@ -10,7 +10,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 export const CabinCalendar: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedCabin, setSelectedCabin] = useState('all')
-  const { bookings, isLoading, error } = useBookings()
+  const { bookings, isLoading } = useBookings()
 
   if (isLoading) return <div>Cargando reservas...</div>
 
