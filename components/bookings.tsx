@@ -43,42 +43,31 @@ export function BookingForm({ cabinNames, onSubmit, isDateBooked }: BookingFormP
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="cabin">Cabaña</Label>
-          <Select onValueChange={setSelectedCabin} value={selectedCabin}>
-            <SelectTrigger id="cabin">
-              <SelectValue placeholder="Seleccione una cabaña" />
-            </SelectTrigger>
-            <SelectContent>
-              {cabinNames.map((cabinName) => (
-                <SelectItem key={cabinName} value={cabinName}>
-                  {cabinName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="tenantName">Nombre de inquilino</Label>
-          <Input
-            id="tenantName"
-            value={tenantName}
-            onChange={(e) => setTenantName(e.target.value)}
-            required
-          />
-        </div>
+<form onSubmit={handleSubmit} className="space-y-4">
+  <div className="flex gap-8">
+    <div className="w-1/2 space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="cabin">Cabaña</Label>
+        <Select onValueChange={setSelectedCabin} value={selectedCabin}>
+          <SelectTrigger id="cabin">
+            <SelectValue placeholder="Seleccione una cabaña" />
+          </SelectTrigger>
+          <SelectContent>
+            {cabinNames.map((cabinName) => (
+              <SelectItem key={cabinName} value={cabinName}>
+                {cabinName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div className="space-y-2">
-        <Label>Fecha de reserva</Label>
-        <Calendar
-          mode="range"
-          selected={dateRange}
-          onSelect={setDateRange}
-          numberOfMonths={2}
-          className="rounded-md border"
-          disabled={(date) => selectedCabin ? isDateBooked(date, selectedCabin) : false}
+        <Label htmlFor="tenantName">Nombre de inquilino</Label>
+        <Input
+          id="tenantName"
+          value={tenantName}
+          onChange={(e) => setTenantName(e.target.value)}
+          required
         />
       </div>
       <div className="space-y-2">
@@ -92,7 +81,26 @@ export function BookingForm({ cabinNames, onSubmit, isDateBooked }: BookingFormP
         />
       </div>
       <Button type="submit" className="w-full">Agregar reserva</Button>
-    </form>
+    </div>
+
+    <div className="m-auto">
+      <div className="space-y-2">
+        <Label>Fecha de reserva</Label>
+        <Calendar
+          mode="range"
+          selected={dateRange}
+          onSelect={setDateRange}
+          numberOfMonths={2}
+          className="rounded-md border"
+          disabled={(date) =>
+            selectedCabin ? isDateBooked(date, selectedCabin) : false
+          }
+        />
+      </div>
+    </div>
+  </div>
+</form>
+
   )
 }
 

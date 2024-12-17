@@ -84,7 +84,7 @@ export default function CabinManagement() {
               <CardTitle>Resumen</CardTitle>
             </CardHeader>
             <CardContent>
-            <div className="flex justify-between flex-wrap">
+            <div className="flex gap-4 justify-center flex-wrap">
                 {bookings.map((booking: Booking) => (
                   <BookingSummary key={booking.id} booking={booking} />
                 ))}
