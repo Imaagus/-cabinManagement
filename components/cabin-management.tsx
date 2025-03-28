@@ -48,6 +48,7 @@ export default function CabinManagement() {
   const handleDelete = async (id: string) => {
     console.log("Attempting to delete booking with id:", id)
     try {
+      // Use a try-catch block to handle any errors from the deleteBooking function
       await deleteBooking(id)
       console.log("Booking deleted successfully")
       toast({

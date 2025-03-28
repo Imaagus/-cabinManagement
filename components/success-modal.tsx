@@ -21,7 +21,7 @@ interface SuccessModalProps {
 }
 
 export function SuccessModal({ isOpen, onClose, bookingData }: SuccessModalProps) {
-  const [mounted, setMounted] = useState(false)
+  const [, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)

@@ -221,7 +221,11 @@ export function BookingList({ bookings, cabinNames, onDelete }: BookingListProps
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as "active" | "upcoming" | "all")}
+        className="w-full"
+      >
         <TabsList className="grid w-full grid-cols-3 p-1 rounded-full bg-muted/50">
           <TabsTrigger value="active" className="rounded-full">
             Activas

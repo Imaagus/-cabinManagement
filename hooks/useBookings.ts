@@ -25,7 +25,8 @@ export function useBookings() {
       }
       const data = await response.json()
       return data.map((record: any) => ({
-        id: record.id,
+        // Mapear xata_id a id para mantener la consistencia en la interfaz
+        id: record.xata_id || record.id,
         tenantName: record.tenantName ?? "",
         dateFrom: record.dateFrom ? new Date(record.dateFrom) : null,
         dateTo: record.dateTo ? new Date(record.dateTo) : null,
@@ -59,34 +60,59 @@ export function useBookings() {
 
   const deleteBookingMutation = useMutation({
     mutationFn: async (bookingId: string) => {
-      // Check if this is a temporary booking ID
-      if (!bookingId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-        // For temporary bookings, just return the ID to remove it from the cache
-        return { id: bookingId }
+      console.log("Client: Deleting booking with ID:", bookingId)
+
+      // Check if bookingId is undefined or null
+      if (!bookingId) {
+        console.error("Client: Error - bookingId is undefined or null")
+        throw new Error("ID de reserva no válido o no proporcionado")
       }
 
-      const response = await fetch(`/api/bookings/${bookingId}`, {
-        method: "DELETE",
-      })
+      try {
+        console.log("Client: Sending DELETE request to:", `/api/bookings/${bookingId}`)
+        const response = await fetch(`/api/bookings/${bookingId}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error("Booking not found")
+        console.log("Client: Delete response status:", response.status)
+
+        if (!response.ok) {
+          let errorMessage = "Failed to delete booking"
+
+          try {
+            const errorData = await response.json()
+            console.error("Client: Error response data:", errorData)
+            errorMessage = errorData.error || errorMessage
+          } catch (e) {
+            console.error("Client: Could not parse error response:", e)
+          }
+
+          throw new Error(errorMessage)
         }
-        const errorData = await response.json().catch(() => ({ error: "Failed to delete booking" }))
-        throw new Error(errorData.error || "Failed to delete booking")
-      }
 
-      return response.json()
+        const result = await response.json()
+        console.log("Client: Delete successful, response:", result)
+        return { id: bookingId, ...result }
+      } catch (error) {
+        console.error("Client: Error in delete request:", error)
+        throw error
+      }
     },
-    onSuccess: (_, deletedId) => {
+    onSuccess: (data, deletedId) => {
+      console.log("Client: Delete mutation successful, updating cache for ID:", deletedId)
       // Update the cache to remove the deleted booking
       queryClient.setQueryData<Booking[]>(["bookings"], (oldData) => {
         return oldData ? oldData.filter((booking) => booking.id !== deletedId) : []
       })
+
+      // Also invalidate the query to refetch the latest data
+      queryClient.invalidateQueries({ queryKey: ["bookings"] })
     },
     onError: (error) => {
-      console.error("Error in deleteBookingMutation:", error)
+      console.error("Client: Error in deleteBookingMutation:", error)
     },
   })
 

@@ -34,35 +34,6 @@ export async function POST(request: Request) {
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  try {
-    const xata = getXataClient()
-    const id = params.id
-
-    // Validate the ID format
-    if (!id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-      return NextResponse.json({ error: "Invalid booking ID format" }, { status: 400 })
-    }
-
-    // Try to find the booking first
-    const booking = await xata.db.cabin.read(id)
-    if (!booking) {
-      return NextResponse.json({ error: "Booking not found" }, { status: 404 })
-    }
-
-    // Delete the booking
-    await xata.db.cabin.delete(id)
-
-    return NextResponse.json({
-      success: true,
-      message: "Booking deleted successfully",
-      id,
-    })
-  } catch (error) {
-    console.error("Error deleting booking:", error)
-    return NextResponse.json({ error: "Failed to delete booking" }, { status: 500 })
-  }
-}
 
 
 

@@ -83,14 +83,11 @@ export const CabinCalendar: React.FC = () => {
 
   const uniqueCabinIds = Array.from(new Set(bookings.map((booking) => booking.cabinId)))
 
-  // Get bookings for the selected date
   const selectedDateBookings = useMemo(() => {
     if (!selectedDate) return []
     return getBookingsForDate(selectedDate)
   }, [selectedDate, bookings, selectedCabin])
 
-  // Mock cabin names for demonstration purposes
-  const cabinNames = ["Cabaña A", "Cabaña B", "Cabaña C", "Cabaña D", "Cabaña E"]
 
   if (isLoading)
     return (
@@ -159,7 +156,6 @@ export const CabinCalendar: React.FC = () => {
 
               // Calculate how many cabins are booked for this day
               const bookedCabinsCount = isBooked ? new Set(dayBookings.map((b) => b.cabinId)).size : 0
-              const availableCabinsCount = cabinNames.length - bookedCabinsCount
 
               return (
                 <TooltipProvider key={index}>
